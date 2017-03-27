@@ -1,33 +1,16 @@
 require "./GettingStarted/*"
 require "kemal"
+require "./Middleware/*"
 
 module GettingStarted
-	
-	class CheckParams < Kemal::Handler
-		only ["/hi"],"POST"
-		def call(env)
-			return call_next(env) unless only_match?(env)
-			required = ["id", "age"]
-			params_received = [] of String
-			env.params.json.each do |param|
-				params_received << param[0]
-			end
-			p required
-			p params_received
-			p required - params_received
-			if !(required - params_received).empty?
-				env.response.status_code = 400
-				env.response << "tá faltando #{(required - params_received).join(", ")}"
-			end
-			
-			return call_next(env)
-		end
-	end
-	
-	add_handler CheckParams.new
 
-	get "/" do 
-		"oier"
+	add_handler Middleware::CheckParams.new
+	add_handler Middleware::AuthXToken.new
+
+	get "/" do |env|
+		if env.response.status_code == 200
+			"oier"
+		end
 	end
 
 	get "/hello/:name" do |env|
